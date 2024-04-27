@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  wc_db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "6543:6543"
+
+  wc_fastapi:
+    build: .
+    command: pipenv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - wc_db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://user:password@db/mydatabase
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
